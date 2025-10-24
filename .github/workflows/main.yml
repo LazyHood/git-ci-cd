@@ -37,14 +37,28 @@ jobs:
       - name: Success message
         run: echo "All tests passed!"
 
-  auto-approve:
+  merge-to-main:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     permissions:
-      pull-requests: write
+      contents: write
+    
     steps:
-      - name: Auto approve PR
-        uses: hmarr/auto-approve-action@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+      
+      - name: Merge development to main
+        run: |
+          git checkout main
+          git merge --no-ff development -m "Auto merge development to main"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
