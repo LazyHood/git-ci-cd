@@ -40,18 +40,14 @@ jobs:
   auto-merge:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' || github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request'
     permissions:
       contents: write
       pull-requests: write
     
     steps:
-      - name: Auto merge PR
-        uses: pascalgn/automerge-action@v0.16.3
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_LABELS: "automerge,!work in progress"
-          MERGE_METHOD: "squash"
-          MERGE_COMMIT_MESSAGE: "pull-request-title"
-          MERGE_RETRIES: "6"
-          MERGE_RETRY_SLEEP: "10000"
