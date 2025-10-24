@@ -1,5 +1,6 @@
 # Класс калькулятора
 # Сделать метод а
+# fff
 class Calculator
   def add(a, b)
     a + b
