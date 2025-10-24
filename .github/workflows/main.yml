@@ -18,13 +18,15 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
-          bundler-cache: true
       
       - name: Display commit info
         run: |
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
           echo "Author: ${{ github.actor }}"
+      
+      - name: Add platform to Gemfile.lock
+        run: bundle lock --add-platform x86_64-linux
       
       - name: Install dependencies
         run: bundle install
@@ -34,3 +36,22 @@ jobs:
       
       - name: Success message
         run: echo "All tests passed!"
+  
+  auto-merge:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' || github.event_name == 'pull_request'
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Auto merge PR
+        uses: pascalgn/automerge-action@v0.16.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: "automerge,!work in progress"
+          MERGE_METHOD: "squash"
+          MERGE_COMMIT_MESSAGE: "pull-request-title"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "10000"
